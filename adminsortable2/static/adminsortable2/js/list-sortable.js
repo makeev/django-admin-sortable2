@@ -19,7 +19,7 @@ jQuery.extend({
 // make list view sortable
 jQuery(function($) {
 	var sortable_update_url = $('#adminsortable_update_url').attr('href') || 'adminsortable2_update/';
-	var startorder, endorder;
+	var startorder, endorder, first, reversed_order = true;
 	var csrfvalue = $('form').find('input[name="csrfmiddlewaretoken"]').val();
 
 	$('#result_list').sortable({
@@ -35,6 +35,10 @@ jQuery(function($) {
 				$(dragged_rows.item.context.childNodes[index]).width($(this).width() - 10);
 			});
 			startorder = parseInt($(dragged_rows.item.context).find('div.drag').attr('order'));
+			first = parseInt($('#result_list').find('div.drag').first().attr('order'));
+			if (first == 1) {
+				reversed_order = false;
+			}
 		},
 		stop: function(event, dragged_rows) {
 			var $result_list = $(this);
@@ -42,12 +46,16 @@ jQuery(function($) {
 				$(this).removeClass('row1 row2').addClass(index % 2 ? 'row2' : 'row1');
 			}).each(function() {
 				var untilorder = parseInt($(this).find('div.drag').attr('order'));
-				if (startorder === untilorder)
+				if (startorder === untilorder) {
 					return false;
+				}
 				endorder = untilorder;
 			});
 			if (startorder === endorder + 1)
 				return;
+			if (typeof(endorder) == 'undefined' && reversed_order) {
+				endorder = first+1;
+			}
 			$.ajax({
 				url: sortable_update_url,
 				type: 'POST',
